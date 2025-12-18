@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36603.0 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartCapHubListener", "SmartCapHubListener\SmartCapHubListener.csproj", "{C01231B1-F16E-4FE0-9399-4E9398E0129E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C01231B1-F16E-4FE0-9399-4E9398E0129E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C01231B1-F16E-4FE0-9399-4E9398E0129E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C01231B1-F16E-4FE0-9399-4E9398E0129E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C01231B1-F16E-4FE0-9399-4E9398E0129E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B844CF98-1E4F-4AE1-8C02-3467F21C2BAD}
+	EndGlobalSection
+EndGlobal

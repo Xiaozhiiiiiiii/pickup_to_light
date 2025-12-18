@@ -1,0 +1,20 @@
+@'
+{
+  "Content": "{Content definition}",
+  "LED_STRIP_1": {
+    "Active": true,
+    "Segments": [
+      {
+        "StartLED": 0,
+        "StopLED": 70,
+        "Speed": 190,
+        "Effect": 1,
+        "Colors": [
+          { "R": 150, "G": 0, "B": 0 },
+          { "R": 150, "G": 0, "B": 0 }
+        ]
+      }
+    ]
+  }
+}
+'@ | Out-File -Encoding utf8 payload.json

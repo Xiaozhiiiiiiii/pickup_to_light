@@ -1,0 +1,11 @@
+{
+  "orderId": "LED-BATCH-EXAMPLE",
+  "lines": [
+    { "address": "A-01-01", "led": { "hubIp": "10.0.60.96", "strip": "LED_STRIP_1", "start": 0,  "stop": 10, "color": "COLRED" } },
+    { "address": "A-01-01", "led": { "hubIp": "10.0.60.96", "strip": "LED_STRIP_1", "start": 20, "stop": 30, "color": "COLRED" } },
+    { "address": "A-01-01", "led": { "hubIp": "10.0.60.96", "strip": "LED_STRIP_1", "start": 40, "stop": 50, "color": "COLRED" } },
+
+    { "address": "A-02-01", "led": { "hubIp": "10.0.60.96", "strip": "LED_STRIP_2", "start": 0,  "stop": 20, "color": "COLRED" } },
+    { "address": "A-02-01", "led": { "hubIp": "10.0.60.96", "strip": "LED_STRIP_2", "start": 30, "stop": 40, "color": "COLRED" } }
+  ]
+}

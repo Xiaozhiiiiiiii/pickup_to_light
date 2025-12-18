@@ -1,0 +1,50 @@
+{
+  "B1-001R": [
+    {
+      "address": "1001",
+      "color": "COLRED",
+      "mode": "PRE_BUTTON_MODE",
+      "text": "@12@"
+    }
+  ],
+  "B1-002G": [
+    {
+      "address": "1002",
+      "color": "COLGREEN",
+      "mode": "PRE_BUTTON_MODE",
+      "text": "@25@"
+    }
+  ],
+  "B1-003B": [
+    {
+      "address": "1003",
+      "color": "COLBLUE",
+      "mode": "PRE_BUTTON_MODE",
+      "text": "@36@"
+    }
+  ],
+  "B1-004Y": [
+    {
+      "address": "1004",
+      "color": "COLYELLOW",
+      "mode": "PRE_BUTTON_MODE",
+      "text": "@47@"
+    }
+  ],
+  "B1-005M": [
+    {
+      "address": "1005",
+      "color": "COLMAGENTA",
+      "mode": "PRE_BUTTON_MODE",
+      "text": "@59@"
+    }
+  ],
+  "B1-006W": [
+    {
+      "address": "1006",
+      "color": "COLWHITE",
+      "mode": "PRE_BUTTON_MODE",
+      "text": "@66@"
+    }
+  ]
+}

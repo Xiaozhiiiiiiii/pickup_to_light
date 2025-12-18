@@ -1,0 +1,39 @@
+# ⚠️ 建議先把第一行 version 刪掉，避免警告；保留也不影響功能
+services:
+  # ❌ 先不要再啟另一顆 mosquitto，避免跟你已在跑的 `mqtt` 撞埠
+  # mosquitto:
+  #   image: eclipse-mosquitto:2
+  #   container_name: mosquitto
+  #   ports: ["1883:1883", "9001:9001"]
+  #   volumes:
+  #     - ./mosquitto/conf:/mosquitto/config
+  #     - ./mosquitto/data:/mosquitto/data
+  #     - ./mosquitto/log:/mosquitto/log
+  #   restart: unless-stopped
+
+  central:
+    image: node:20-alpine
+    container_name: central
+    working_dir: /app
+    command: sh -c "npm i && node server.js"
+    volumes:
+      - ./central:/app
+    environment:
+      # 👉 直接連主機的 1883（= 你那顆已在跑的 `mqtt` 容器）
+      - MQTT_URL=mqtt://10.0.60.96:1883
+      - HTTP_PORT=8080
+      - SEH_PRODUCT=SEH100
+      - SEH_DEVICE_ID=EU-MuddledBrokenDiet   # 換成你的實際 DeviceId
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  erp-sim:
+    build: ./erp-sim
+    container_name: erp-sim
+    working_dir: /app
+    environment:
+      # 👉 從容器內走主機入口打到 central
+      - CENTRAL_URL=http://host.docker.internal:8080
+    # 不要 depends_on，避免拉其他服務造成衝突
+    restart: "no"

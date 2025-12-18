@@ -1,0 +1,412 @@
+{
+  "L1-001": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CS-34449y-A00",
+      "color": "COLGREEN",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 6
+    }
+  ],
+  "L1-002": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CK3795-A02",
+      "color": "COLGREEN",
+      "strip": "LED_STRIP_1",
+      "start": 9,
+      "stop": 15
+    }
+  ],
+  "L1-003": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CA-3052A-A00",
+      "color": "COLGREEN",
+      "strip": "LED_STRIP_1",
+      "start": 16,
+      "stop": 23
+    }
+  ],
+  "L1-004": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CF-3006Z-A00",
+      "color": "COLGREEN",
+      "strip": "LED_STRIP_1",
+      "start": 25,
+      "stop": 32
+    }
+  ],
+  "L1-005": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CF-3006Z-A00",
+      "color": "COLGREEN",
+      "strip": "LED_STRIP_1",
+      "start": 36,
+      "stop": 43
+    }
+  ],
+  "L1-006": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CF-3006Z-A00",
+      "color": "COLBLUE",
+      "strip": "LED_STRIP_1",
+      "start": 47,
+      "stop": 54
+    }
+  ],
+  "L1-007": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CF-3006Z-A00",
+      "color": "COLBLUE",
+      "strip": "LED_STRIP_1",
+      "start": 68,
+      "stop": 75
+    }
+  ],
+  "L1-008": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CF-3006Z-A00",
+      "color": "COLBLUE",
+      "strip": "LED_STRIP_1",
+      "start": 80,
+      "stop": 86
+    }
+  ],
+  "L1-009": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CF-3006Z-A00",
+      "color": "COLBLUE",
+      "strip": "LED_STRIP_1",
+      "start": 86,
+      "stop": 92
+    }
+  ],
+  "L1-010": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CF-3006Z-A00",
+      "color": "COLBLUE",
+      "strip": "LED_STRIP_1",
+      "start": 93,
+      "stop": 99
+    }
+  ],
+  "L1-011": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CF-3006Z-A00",
+      "color": "COLBLUE",
+      "strip": "LED_STRIP_1",
+      "start": 100,
+      "stop": 106
+    }
+  ],
+
+  "L1-012": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "LA-3016-A00",
+      "color": "COLBLUE",
+      "strip": "LED_STRIP_1",
+      "start": 110,
+      "stop": 117
+    }
+  ],
+  "L1-0013": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45-c4Y-A00",
+      "color": "COLBLUE",
+      "strip": "LED_STRIP_1",
+      "start": 117,
+      "stop": 122
+    }
+  ],
+
+  "L2-001": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45-c4Y-A00",
+      "color": "COLMAGENTA",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 3
+    }
+  ],
+  "L2-002": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45/c4Y-A00",
+      "color": "COLMAGENTA",
+      "strip": "LED_STRIP_2",
+      "start": 10,
+      "stop": 16
+    }
+  ],
+
+  "L2-003": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45/c4Y-A00",
+      "color": "COLMAGENTA",
+      "strip": "LED_STRIP_2",
+      "start": 28,
+      "stop": 35
+    }
+  ],
+  "L2-004": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45/c4Y-A00",
+      "color": "COLMAGENTA",
+      "strip": "LED_STRIP_2",
+      "start": 40,
+      "stop": 47
+    }
+  ],
+
+  "L2-005": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45/c4Y-A00",
+      "color": "COLMAGENTA",
+      "strip": "LED_STRIP_2",
+      "start": 50,
+      "stop": 57
+    }
+  ],
+
+  "L2-006": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45/c4Y-A00",
+      "color": "COLMAGENTA",
+      "strip": "LED_STRIP_2",
+      "start": 60,
+      "stop": 67
+    }
+  ],
+  "L2-007": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45/c4Y-A00",
+      "color": "COLCYAN",
+      "strip": "LED_STRIP_2",
+      "start": 70,
+      "stop": 77
+    }
+  ],
+
+  "L2-008": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45/c4Y-A00",
+      "color": "COLCYAN",
+      "strip": "LED_STRIP_2",
+      "start": 78,
+      "stop": 84
+    }
+  ],
+
+  "L2-009": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45/c4Y-A00",
+      "color": "COLCYAN",
+      "strip": "LED_STRIP_2",
+      "start": 90,
+      "stop": 97
+    }
+  ],
+  "L2-010": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45/c4Y-A00",
+      "color": "COLCYAN",
+      "strip": "LED_STRIP_2",
+      "start": 104,
+      "stop": 110
+    }
+  ],
+
+  "L2-011": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    },
+    {
+      "binId": "CB-45/c4Y-A00",
+      "color": "COLCYAN",
+      "strip": "LED_STRIP_2",
+      "start": 116,
+      "stop": 122
+    }
+  ],
+  "L1-OFF": [
+    {
+      "binId": "L1-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_1",
+      "start": 0,
+      "stop": 0
+    }
+  ],
+  "L2-OFF": [
+    {
+      "binId": "L2-OFF",
+      "color": "COLOFF",
+      "strip": "LED_STRIP_2",
+      "start": 0,
+      "stop": 0
+    }
+  ]
+}

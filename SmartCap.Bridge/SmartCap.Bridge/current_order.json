@@ -1,0 +1,18 @@
+{
+  "orderId": "WO-20251022-001",
+  "hubId": "HUB-60-96",
+  "lines": [
+    { "address": "1003", "partNo": "MAT-7X9A", "qty": 3, "location": "HUB-5" },
+    { "address": "1001", "partNo": "MAT-2Q17", "qty": 5, "location": "HUB-10" },
+    { "address": "1010", "partNo": "MAT-9KM2", "qty": 2, "location": "HUB-12" },
+    { "address": "1005", "partNo": "MAT-55R4", "qty": 1, "location": "HUB-6" },
+    { "address": "1013", "partNo": "MAT-A8Z1", "qty": 4, "location": "HUB-9" },
+    { "address": "1002", "partNo": "MAT-PP02", "qty": 6, "location": "HUB-13" },
+    { "address": "1006", "partNo": "MAT-H3N7", "qty": 3, "location": "HUB-11" },
+    { "address": "1009", "partNo": "MAT-WQ11", "qty": 2, "location": "HUB-2" },
+    { "address": "1012", "partNo": "MAT-6LT0", "qty": 5, "location": "HUB-4" },
+    { "address": "1004", "partNo": "MAT-D3C5", "qty": 1, "location": "HUB-1" },
+    { "address": "1007", "partNo": "MAT-R88Q", "qty": 3, "location": "HUB-3" },
+    { "address": "1011", "partNo": "MAT-V1B9", "qty": 2, "location": "HUB-7" }
+  ]
+}
