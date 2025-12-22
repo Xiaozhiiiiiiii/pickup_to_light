@@ -1,17 +1,9 @@
-﻿// SmartCap.Bridge / Form1.Designer.cs
-namespace SmartCap.Bridge
+﻿namespace SmartCap.Bridge
 {
     partial class Form1
     {
-        /// <summary>
-        ///  Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        ///  Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -23,180 +15,212 @@ namespace SmartCap.Bridge
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        ///  Required method for Designer support - do not modify
-        ///  the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
-            this.lblTitle = new System.Windows.Forms.Label();
-            this.lblHubIp = new System.Windows.Forms.Label();
             this.txtHubIp = new System.Windows.Forms.TextBox();
-            this.btnConnectHub = new System.Windows.Forms.Button();
-            this.lblHubStatus = new System.Windows.Forms.Label();
-            this.lblOrderUrl = new System.Windows.Forms.Label();
-            this.txtOrderUrl = new System.Windows.Forms.TextBox();
-            this.btnGetOrder = new System.Windows.Forms.Button();
-            this.btnStart = new System.Windows.Forms.Button();
-            this.lblMqttStatus = new System.Windows.Forms.Label();
+            this.txtOrderId = new System.Windows.Forms.TextBox();
+            this.numCount = new System.Windows.Forms.NumericUpDown();
+            this.numIntervalMs = new System.Windows.Forms.NumericUpDown();
+            this.numTimeoutMs = new System.Windows.Forms.NumericUpDown();
+            this.lblHubIp = new System.Windows.Forms.Label();
+            this.lblOrderId = new System.Windows.Forms.Label();
+            this.lblCount = new System.Windows.Forms.Label();
+            this.lblInterval = new System.Windows.Forms.Label();
+            this.lblTimeout = new System.Windows.Forms.Label();
+            this.btnRun = new System.Windows.Forms.Button();
+            this.btnStop = new System.Windows.Forms.Button();
+            this.btnExportCsv = new System.Windows.Forms.Button();
+            this.lblKpi = new System.Windows.Forms.Label();
             this.lstLog = new System.Windows.Forms.ListBox();
+            ((System.ComponentModel.ISupportInitialize)(this.numCount)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numIntervalMs)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numTimeoutMs)).BeginInit();
             this.SuspendLayout();
             // 
-            // lblTitle
+            // txtHubIp
             // 
-            this.lblTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.Location = new System.Drawing.Point(12, 9);
-            this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(860, 28);
-            this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "SmartCAP Bridge — ERP Order Picking";
-            this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.txtHubIp.Location = new System.Drawing.Point(92, 16);
+            this.txtHubIp.Name = "txtHubIp";
+            this.txtHubIp.Size = new System.Drawing.Size(200, 23);
+            this.txtHubIp.TabIndex = 0;
+            this.txtHubIp.Text = "10.0.60.96";
+            // 
+            // txtOrderId
+            // 
+            this.txtOrderId.Location = new System.Drawing.Point(92, 48);
+            this.txtOrderId.Name = "txtOrderId";
+            this.txtOrderId.Size = new System.Drawing.Size(200, 23);
+            this.txtOrderId.TabIndex = 1;
+            this.txtOrderId.Text = "L1-011";
+            // 
+            // numCount
+            // 
+            this.numCount.Location = new System.Drawing.Point(388, 16);
+            this.numCount.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
+            this.numCount.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            this.numCount.Name = "numCount";
+            this.numCount.Size = new System.Drawing.Size(90, 23);
+            this.numCount.TabIndex = 2;
+            this.numCount.Value = new decimal(new int[] { 200, 0, 0, 0 });
+            // 
+            // numIntervalMs
+            // 
+            this.numIntervalMs.Location = new System.Drawing.Point(388, 48);
+            this.numIntervalMs.Maximum = new decimal(new int[] { 600000, 0, 0, 0 });
+            this.numIntervalMs.Name = "numIntervalMs";
+            this.numIntervalMs.Size = new System.Drawing.Size(90, 23);
+            this.numIntervalMs.TabIndex = 3;
+            this.numIntervalMs.Value = new decimal(new int[] { 100, 0, 0, 0 });
+            // 
+            // numTimeoutMs
+            // 
+            this.numTimeoutMs.Location = new System.Drawing.Point(388, 80);
+            this.numTimeoutMs.Maximum = new decimal(new int[] { 600000, 0, 0, 0 });
+            this.numTimeoutMs.Minimum = new decimal(new int[] { 100, 0, 0, 0 });
+            this.numTimeoutMs.Name = "numTimeoutMs";
+            this.numTimeoutMs.Size = new System.Drawing.Size(90, 23);
+            this.numTimeoutMs.TabIndex = 4;
+            this.numTimeoutMs.Value = new decimal(new int[] { 5000, 0, 0, 0 });
             // 
             // lblHubIp
             // 
             this.lblHubIp.AutoSize = true;
-            this.lblHubIp.Location = new System.Drawing.Point(16, 52);
+            this.lblHubIp.Location = new System.Drawing.Point(16, 19);
             this.lblHubIp.Name = "lblHubIp";
-            this.lblHubIp.Size = new System.Drawing.Size(52, 15);
-            this.lblHubIp.TabIndex = 1;
-            this.lblHubIp.Text = "HUB IP：";
+            this.lblHubIp.Size = new System.Drawing.Size(45, 15);
+            this.lblHubIp.TabIndex = 10;
+            this.lblHubIp.Text = "Hub IP";
             // 
-            // txtHubIp
+            // lblOrderId
             // 
-            this.txtHubIp.Location = new System.Drawing.Point(74, 48);
-            this.txtHubIp.Name = "txtHubIp";
-            this.txtHubIp.PlaceholderText = "e.g. 10.0.60.96";
-            this.txtHubIp.Size = new System.Drawing.Size(180, 23);
-            this.txtHubIp.TabIndex = 2;
+            this.lblOrderId.AutoSize = true;
+            this.lblOrderId.Location = new System.Drawing.Point(16, 51);
+            this.lblOrderId.Name = "lblOrderId";
+            this.lblOrderId.Size = new System.Drawing.Size(50, 15);
+            this.lblOrderId.TabIndex = 11;
+            this.lblOrderId.Text = "OrderId";
             // 
-            // btnConnectHub
+            // lblCount
             // 
-            this.btnConnectHub.Location = new System.Drawing.Point(260, 47);
-            this.btnConnectHub.Name = "btnConnectHub";
-            this.btnConnectHub.Size = new System.Drawing.Size(110, 25);
-            this.btnConnectHub.TabIndex = 3;
-            this.btnConnectHub.Text = "Connect HUB";
-            this.btnConnectHub.UseVisualStyleBackColor = true;
-            this.btnConnectHub.Click += new System.EventHandler(this.btnConnectHub_Click);
+            this.lblCount.AutoSize = true;
+            this.lblCount.Location = new System.Drawing.Point(312, 19);
+            this.lblCount.Name = "lblCount";
+            this.lblCount.Size = new System.Drawing.Size(41, 15);
+            this.lblCount.TabIndex = 12;
+            this.lblCount.Text = "Count";
             // 
-            // lblHubStatus
+            // lblInterval
             // 
-            this.lblHubStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblHubStatus.Location = new System.Drawing.Point(380, 51);
-            this.lblHubStatus.Name = "lblHubStatus";
-            this.lblHubStatus.Size = new System.Drawing.Size(492, 18);
-            this.lblHubStatus.TabIndex = 4;
-            this.lblHubStatus.Text = "HUB: Not connected";
+            this.lblInterval.AutoSize = true;
+            this.lblInterval.Location = new System.Drawing.Point(312, 51);
+            this.lblInterval.Name = "lblInterval";
+            this.lblInterval.Size = new System.Drawing.Size(67, 15);
+            this.lblInterval.TabIndex = 13;
+            this.lblInterval.Text = "Interval ms";
             // 
-            // lblOrderUrl
+            // lblTimeout
             // 
-            this.lblOrderUrl.AutoSize = true;
-            this.lblOrderUrl.Location = new System.Drawing.Point(16, 89);
-            this.lblOrderUrl.Name = "lblOrderUrl";
-            this.lblOrderUrl.Size = new System.Drawing.Size(69, 15);
-            this.lblOrderUrl.TabIndex = 5;
-            this.lblOrderUrl.Text = "Order URL：";
+            this.lblTimeout.AutoSize = true;
+            this.lblTimeout.Location = new System.Drawing.Point(312, 83);
+            this.lblTimeout.Name = "lblTimeout";
+            this.lblTimeout.Size = new System.Drawing.Size(75, 15);
+            this.lblTimeout.TabIndex = 14;
+            this.lblTimeout.Text = "Timeout ms";
             // 
+            // btnRun
             // 
-            // txtOrderUrl
+            this.btnRun.Location = new System.Drawing.Point(500, 16);
+            this.btnRun.Name = "btnRun";
+            this.btnRun.Size = new System.Drawing.Size(120, 27);
+            this.btnRun.TabIndex = 5;
+            this.btnRun.Text = "Start Stress";
+            this.btnRun.UseVisualStyleBackColor = true;
             // 
-            this.txtOrderUrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtOrderUrl.Location = new System.Drawing.Point(100, 86);
-            this.txtOrderUrl.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.txtOrderUrl.Name = "txtOrderUrl";
-            this.txtOrderUrl.PlaceholderText = "http://<ERP>:5055/orders/current";
-            this.txtOrderUrl.Size = new System.Drawing.Size(550, 25);
-            this.txtOrderUrl.TabIndex = 6;
-
+            // btnStop
             // 
-            // btnGetOrder
+            this.btnStop.Location = new System.Drawing.Point(500, 48);
+            this.btnStop.Name = "btnStop";
+            this.btnStop.Size = new System.Drawing.Size(120, 27);
+            this.btnStop.TabIndex = 6;
+            this.btnStop.Text = "Stop";
+            this.btnStop.UseVisualStyleBackColor = true;
             // 
-            this.btnGetOrder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnGetOrder.Location = new System.Drawing.Point(665, 85);
-            this.btnGetOrder.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.btnGetOrder.Name = "btnGetOrder";
-            this.btnGetOrder.Size = new System.Drawing.Size(110, 27);
-            this.btnGetOrder.TabIndex = 7;
-            this.btnGetOrder.Text = "Get Order";
-            this.btnGetOrder.UseVisualStyleBackColor = true;
-          
+            // btnExportCsv
             // 
-            // btnStart
+            this.btnExportCsv.Location = new System.Drawing.Point(500, 80);
+            this.btnExportCsv.Name = "btnExportCsv";
+            this.btnExportCsv.Size = new System.Drawing.Size(120, 27);
+            this.btnExportCsv.TabIndex = 7;
+            this.btnExportCsv.Text = "Export CSV";
+            this.btnExportCsv.UseVisualStyleBackColor = true;
             // 
-            this.btnStart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnStart.Location = new System.Drawing.Point(785, 85);
-            this.btnStart.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(110, 27);
-            this.btnStart.TabIndex = 8;
-            this.btnStart.Text = "Start Picking";
-            this.btnStart.UseVisualStyleBackColor = true;
-
-            //   this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
+            // lblKpi
             // 
-            // lblMqttStatus
-            // 
-            this.lblMqttStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblMqttStatus.Location = new System.Drawing.Point(16, 122);
-            this.lblMqttStatus.Name = "lblMqttStatus";
-            this.lblMqttStatus.Size = new System.Drawing.Size(856, 18);
-            this.lblMqttStatus.TabIndex = 9;
-            this.lblMqttStatus.Text = "MQTT: (unused)";
+            this.lblKpi.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblKpi.Location = new System.Drawing.Point(16, 118);
+            this.lblKpi.Name = "lblKpi";
+            this.lblKpi.Size = new System.Drawing.Size(760, 18);
+            this.lblKpi.TabIndex = 15;
+            this.lblKpi.Text = "KPI: -";
             // 
             // lstLog
             // 
             this.lstLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.lstLog.IntegralHeight = false;
-            this.lstLog.HorizontalScrollbar = true;
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lstLog.FormattingEnabled = true;
             this.lstLog.ItemHeight = 15;
-            this.lstLog.Location = new System.Drawing.Point(16, 151);
+            this.lstLog.Location = new System.Drawing.Point(16, 146);
             this.lstLog.Name = "lstLog";
-            this.lstLog.Size = new System.Drawing.Size(856, 358);
-            this.lstLog.TabIndex = 10;
+            this.lstLog.Size = new System.Drawing.Size(760, 304);
+            this.lstLog.TabIndex = 8;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(884, 521);
+            this.ClientSize = new System.Drawing.Size(792, 468);
             this.Controls.Add(this.lstLog);
-            this.Controls.Add(this.lblMqttStatus);
-            this.Controls.Add(this.btnStart);
-            this.Controls.Add(this.btnGetOrder);
-            this.Controls.Add(this.txtOrderUrl);
-            this.Controls.Add(this.lblOrderUrl);
-            this.Controls.Add(this.lblHubStatus);
-            this.Controls.Add(this.btnConnectHub);
-            this.Controls.Add(this.txtHubIp);
+            this.Controls.Add(this.lblKpi);
+            this.Controls.Add(this.btnExportCsv);
+            this.Controls.Add(this.btnStop);
+            this.Controls.Add(this.btnRun);
+            this.Controls.Add(this.lblTimeout);
+            this.Controls.Add(this.lblInterval);
+            this.Controls.Add(this.lblCount);
+            this.Controls.Add(this.lblOrderId);
             this.Controls.Add(this.lblHubIp);
-            this.Controls.Add(this.lblTitle);
-            this.MinimumSize = new System.Drawing.Size(720, 480);
+            this.Controls.Add(this.numTimeoutMs);
+            this.Controls.Add(this.numIntervalMs);
+            this.Controls.Add(this.numCount);
+            this.Controls.Add(this.txtOrderId);
+            this.Controls.Add(this.txtHubIp);
             this.Name = "Form1";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "SmartCAP Bridge";
+            this.Text = "Test";
+            ((System.ComponentModel.ISupportInitialize)(this.numCount)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numIntervalMs)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numTimeoutMs)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
         }
 
         #endregion
 
-        private System.Windows.Forms.Label lblTitle;
+        private System.Windows.Forms.TextBox txtHubIp;
+        private System.Windows.Forms.TextBox txtOrderId;
+        private System.Windows.Forms.NumericUpDown numCount;
+        private System.Windows.Forms.NumericUpDown numIntervalMs;
+        private System.Windows.Forms.NumericUpDown numTimeoutMs;
         private System.Windows.Forms.Label lblHubIp;
-        public System.Windows.Forms.TextBox txtHubIp;
-        private System.Windows.Forms.Button btnConnectHub;
-        public System.Windows.Forms.Label lblHubStatus;
-        private System.Windows.Forms.Label lblOrderUrl;
-        public System.Windows.Forms.TextBox txtOrderUrl;
-        private System.Windows.Forms.Button btnGetOrder;
-        private System.Windows.Forms.Button btnStart;
-        public System.Windows.Forms.Label lblMqttStatus;
-        public System.Windows.Forms.ListBox lstLog;
+        private System.Windows.Forms.Label lblOrderId;
+        private System.Windows.Forms.Label lblCount;
+        private System.Windows.Forms.Label lblInterval;
+        private System.Windows.Forms.Label lblTimeout;
+        private System.Windows.Forms.Button btnRun;
+        private System.Windows.Forms.Button btnStop;
+        private System.Windows.Forms.Button btnExportCsv;
+        private System.Windows.Forms.Label lblKpi;
+        private System.Windows.Forms.ListBox lstLog;
     }
 }
