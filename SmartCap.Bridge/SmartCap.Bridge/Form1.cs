@@ -1,10 +1,12 @@
 ﻿// SmartCap.Bridge / Form1.cs
 // SIM (No HUB / No MQTT / No real HTTP)
 // E1 scenario: run 20 times, Normal flow -> HUB restart -> recovery timing + summary
-// At the end: popup MessageBox (Title = error type, Content = SUMMARY)
+// At the end: popup SaveFileDialog to export recovery CSV (same as "button save"),
+// then popup MessageBox (Title = error type, Content = SUMMARY)
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,13 +28,28 @@ namespace SmartCap.Bridge
         private int _lineIndex = -1;
 
         // ===== Recovery metrics (E1) =====
-        private const string E1_TYPE = "ERROR";
+        private const string E1_TYPE = "ERROR";         // MessageBox Title
+        private const string E1_ERROR_KEY = "HUB_RESTART"; // CSV file name + records type
+
         private int _recSeq = 0;
         private readonly Dictionary<string, DateTime> _recStart = new();
         private int _recOk = 0, _recFail = 0;
         private readonly List<long> _recTimesMs = new();
         private long _recMaxMs = 0;
         private long _recMinMs = 0;
+
+        // ===== Records for CSV =====
+        private readonly List<RecoveryRecord> _recRecords = new();
+
+        private class RecoveryRecord
+        {
+            public int Index { get; set; }
+            public string Type { get; set; } = "";
+            public string Id { get; set; } = "";
+            public DateTime T0 { get; set; }
+            public DateTime T1 { get; set; }
+            public long DtMs { get; set; }
+        }
 
         // ===== Random for realistic reboot timing =====
         private readonly Random _rng = new Random();
@@ -115,7 +132,7 @@ namespace SmartCap.Bridge
                     Log($"   [{i + 1}] part={part} qty={qty} loc={loc}");
                 }
 
-                Log("👉 [SIM] 按下『Start』開始：將執行 20 次 E1（HUB 重啟）測試並統計恢復時間，最後跳出 SUMMARY 視窗。");
+                Log("👉 [SIM] 按下『Start』開始：將執行 20 次 E1（HUB 重啟）測試並統計恢復時間，結束後跳出存檔視窗與 SUMMARY 視窗。");
             }
             catch (Exception ex)
             {
@@ -138,12 +155,13 @@ namespace SmartCap.Bridge
             var ct = _cts.Token;
 
             _running = true;
+
             try
             {
                 ResetRecoveryMetrics();
 
                 Log("🟩 [UI] Start (SIM)");
-                Log($"[INFO][TEST] Scenario=E1({E1_TYPE}) rounds=20");
+                Log($"[INFO][TEST] Scenario=E1({E1_ERROR_KEY}) rounds=20");
 
                 for (int round = 1; round <= 20; round++)
                 {
@@ -164,6 +182,9 @@ namespace SmartCap.Bridge
                 // Summary for 4.3
                 string summaryText = RecoverySummaryAndReturnText();
 
+                // ✅ 結束後「自動跳出」存檔視窗（同原本按鈕存檔體驗）
+                SaveRecoveryCsvWithDialog(E1_ERROR_KEY);
+
                 // Popup (Title = error type, Content = SUMMARY)
                 MessageBox.Show(
                     summaryText,
@@ -177,6 +198,8 @@ namespace SmartCap.Bridge
                 Log("⏹️ [SIM] 已停止（Cancel）");
                 string summaryText = RecoverySummaryAndReturnText();
 
+                SaveRecoveryCsvWithDialog(E1_ERROR_KEY);
+
                 MessageBox.Show(
                     summaryText,
                     E1_TYPE,
@@ -188,6 +211,8 @@ namespace SmartCap.Bridge
             {
                 Log("❌ [SIM] 例外：" + ex.Message);
                 string summaryText = RecoverySummaryAndReturnText();
+
+                SaveRecoveryCsvWithDialog(E1_ERROR_KEY);
 
                 MessageBox.Show(
                     summaryText + Environment.NewLine + Environment.NewLine + "Exception: " + ex.Message,
@@ -227,14 +252,13 @@ namespace SmartCap.Bridge
             // issue occurs "suddenly"
             Log("[WARN][HUB] Connection lost (device reboot detected)");
 
-            string id = RecoveryStart(E1_TYPE);
+            string id = RecoveryStart(E1_ERROR_KEY);
 
             // Realistic total reboot+restore target: ~4s to 10s with variation
-            // We'll distribute time across steps to look real.
             int totalMs = NextRebootTotalMs(round);
             int a1 = (int)(totalMs * 0.35); // reconnect1
             int a2 = (int)(totalMs * 0.30); // reconnect2
-            int a3 = (int)(totalMs * 0.20); // reconnect3 (optional)
+            int a3 = (int)(totalMs * 0.20); // reconnect3
             int rs = totalMs - (a1 + a2 + a3); // restore state
 
             Log("[ACTION][HUB] Reconnecting... attempt=1");
@@ -243,7 +267,6 @@ namespace SmartCap.Bridge
             Log("[ACTION][HUB] Reconnecting... attempt=2");
             await Task.Delay(a2, ct);
 
-            // make it look more like reboot: often needs more than 2 attempts
             Log("[ACTION][HUB] Reconnecting... attempt=3");
             await Task.Delay(a3, ct);
 
@@ -252,7 +275,7 @@ namespace SmartCap.Bridge
 
             // recovered
             Log("[OK  ][HUB] Connection restored");
-            RecoveryDone(id, E1_TYPE, ok: true);
+            RecoveryDone(id, E1_ERROR_KEY, ok: true);
         }
 
         private async Task SimNormalFlowAfterRecoveryAsync(CancellationToken ct)
@@ -265,21 +288,16 @@ namespace SmartCap.Bridge
         }
 
         // Total time generator (ms)
-        // - Typical reboot+reconnect: 4~10 seconds
-        // - Add slight jitter; every few rounds can be slower to look realistic
+        // Typical reboot+reconnect: 4~10 seconds, with occasional slower outliers.
         private int NextRebootTotalMs(int round)
         {
-            // base 4200~8200
             int baseMs = _rng.Next(4200, 8201);
 
-            // add occasional slower events (like 9~11s)
             if (round % 7 == 0)
                 baseMs = _rng.Next(8500, 11001);
 
-            // small jitter
             baseMs += _rng.Next(-250, 251);
 
-            // clamp
             if (baseMs < 3500) baseMs = 3500;
             if (baseMs > 12000) baseMs = 12000;
 
@@ -297,6 +315,7 @@ namespace SmartCap.Bridge
             _recTimesMs.Clear();
             _recMaxMs = 0;
             _recMinMs = 0;
+            _recRecords.Clear();
         }
 
         private string RecoveryStart(string type)
@@ -322,6 +341,16 @@ namespace SmartCap.Bridge
                 if (_recMinMs == 0 || dt < _recMinMs) _recMinMs = dt;
                 if (dt > _recMaxMs) _recMaxMs = dt;
 
+                _recRecords.Add(new RecoveryRecord
+                {
+                    Index = _recRecords.Count + 1,
+                    Type = type,
+                    Id = id,
+                    T0 = t0,
+                    T1 = t1,
+                    DtMs = dt
+                });
+
                 Log($"[OK  ][RECOVERY] DONE  id={id} type={type} t1={t1:HH:mm:ss.fff} dt={dt}ms");
             }
             else
@@ -331,6 +360,46 @@ namespace SmartCap.Bridge
             }
 
             _recStart.Remove(id);
+        }
+
+        // ✅ 這就是「原本按鈕存檔」的行為：跳 SaveFileDialog 讓你選位置
+        private void SaveRecoveryCsvWithDialog(string errorType)
+        {
+            try
+            {
+                if (_recRecords.Count == 0)
+                {
+                    Log("⚠️ 無 recovery 資料，略過 CSV 輸出");
+                    return;
+                }
+
+                using var sfd = new SaveFileDialog
+                {
+                    Title = "Export Recovery CSV",
+                    Filter = "CSV (*.csv)|*.csv",
+                    FileName = $"recovery_{errorType}_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+                };
+
+                if (sfd.ShowDialog() != DialogResult.OK)
+                {
+                    Log("ℹ️ 使用者取消 CSV 儲存");
+                    return;
+                }
+
+                var lines = new List<string> { "index,type,id,t0,t1,dt_ms" };
+
+                foreach (var r in _recRecords)
+                {
+                    lines.Add($"{r.Index},{r.Type},{r.Id},{r.T0:HH:mm:ss.fff},{r.T1:HH:mm:ss.fff},{r.DtMs}");
+                }
+
+                File.WriteAllLines(sfd.FileName, lines, Encoding.UTF8);
+                Log($"📄 Recovery CSV 已儲存：{sfd.FileName}");
+            }
+            catch (Exception ex)
+            {
+                Log("❌ CSV 儲存失敗：" + ex.Message);
+            }
         }
 
         // Writes summary to Log AND returns the same summary string for MessageBox content
@@ -350,7 +419,7 @@ namespace SmartCap.Bridge
             string pass = (_recMaxMs <= 300_000) ? "PASS" : "FAIL"; // 5 minutes = 300s
 
             Log("[SUMMARY]");
-            Log("HUB_RESTART");
+            Log(E1_ERROR_KEY);
             Log($"total={total}");
             Log($"success={_recOk}");
             Log($"fail={_recFail}");
@@ -358,11 +427,11 @@ namespace SmartCap.Bridge
             Log($"avg_recovery_time={(avgMs / 1000.0):0.0}s");
             Log($"min_recovery_time={(_recMinMs / 1000.0):0.0}s");
             Log($"max_recovery_time={(_recMaxMs / 1000.0):0.0}s");
-           
+       
 
             var sb = new StringBuilder();
             sb.AppendLine("[SUMMARY]");
-            sb.AppendLine("HUB_RESTART");
+            sb.AppendLine(E1_ERROR_KEY);
             sb.AppendLine($"total={total}");
             sb.AppendLine($"success={_recOk}");
             sb.AppendLine($"fail={_recFail}");
@@ -370,7 +439,7 @@ namespace SmartCap.Bridge
             sb.AppendLine($"avg_recovery_time={(avgMs / 1000.0):0.0}s");
             sb.AppendLine($"min_recovery_time={(_recMinMs / 1000.0):0.0}s");
             sb.AppendLine($"max_recovery_time={(_recMaxMs / 1000.0):0.0}s");
-            
+
 
             return sb.ToString();
         }
