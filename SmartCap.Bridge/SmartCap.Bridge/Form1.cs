@@ -1,8 +1,12 @@
-﻿// SmartCap.Bridge / Form1.cs
+﻿// SmartCap.Bridge / Form_E3.cs
 // SIM (No HUB / No MQTT / No real HTTP)
-// E1 scenario: run 20 times, Normal flow -> HUB restart -> recovery timing + summary
-// At the end: popup SaveFileDialog to export recovery CSV (same as "button save"),
-// then popup MessageBox (Title = error type, Content = SUMMARY)
+// E3 scenario: Task not found -> HTTP 404 Not Found
+// Run 20 events: always trigger 404 -> system must reject (no LED action) -> record handling time
+// At the end: SaveFileDialog export CSV, then popup MessageBox (Title=ERROR, Content=SUMMARY)
+//
+// Notes:
+// - Keep log density similar to E2: each event logs request, response, reason, decision, timing.
+// - E3 differs from E2: NO "fix payload" retry. It should be rejected immediately.
 
 using System;
 using System.Collections.Generic;
@@ -21,37 +25,50 @@ namespace SmartCap.Bridge
         private CancellationTokenSource? _cts;
         private bool _running = false;
 
-        // ===== Order mock =====
+        // ===== Order mock placeholders (keep structure consistent with E1/E2) =====
         private JArray? _orderQueue;
         private JObject? _currentOrder;
         private JArray? _lines;
         private int _lineIndex = -1;
 
-        // ===== Recovery metrics (E1) =====
-        private const string E1_TYPE = "ERROR";         // MessageBox Title
-        private const string E1_ERROR_KEY = "HUB_RESTART"; // CSV file name + records type
+        // ===== E3 constants =====
+        private const string E3_TITLE = "ERROR";
+        private const string E3_KEY = "NOT_FOUND_404";
+        private const int EVENTS = 20;
 
-        private int _recSeq = 0;
-        private readonly Dictionary<string, DateTime> _recStart = new();
-        private int _recOk = 0, _recFail = 0;
-        private readonly List<long> _recTimesMs = new();
-        private long _recMaxMs = 0;
-        private long _recMinMs = 0;
+        // optional small jitter to simulate handling/network latency
+        private const int HANDLE_JITTER_MIN_MS = 80;
+        private const int HANDLE_JITTER_MAX_MS = 350;
 
-        // ===== Records for CSV =====
-        private readonly List<RecoveryRecord> _recRecords = new();
+        // ===== Metrics =====
+        private int _seq = 0;
+        private readonly Dictionary<string, DateTime> _start = new();
 
-        private class RecoveryRecord
+        private int _ok = 0;   // correct reject
+        private int _fail = 0; // wrong behavior / unexpected parse, etc.
+
+        private readonly List<long> _timesMs = new();
+        private long _maxMs = 0;
+        private long _minMs = 0;
+
+        private int _notFoundCount = 0;
+
+        private readonly List<E3Record> _records = new();
+
+        private class E3Record
         {
             public int Index { get; set; }
             public string Type { get; set; } = "";
             public string Id { get; set; } = "";
+            public string OrderId { get; set; } = "";
+            public string Reason { get; set; } = "";
             public DateTime T0 { get; set; }
             public DateTime T1 { get; set; }
             public long DtMs { get; set; }
+            public string Result { get; set; } = ""; // PASS / FAIL
         }
 
-        // ===== Random for realistic reboot timing =====
+        // ===== Random =====
         private readonly Random _rng = new Random();
 
         public Form1()
@@ -64,7 +81,7 @@ namespace SmartCap.Bridge
             btnStart.Click += btnStart_Click;
 
             UpdateHubStatus("HUB: Not connected (SIM)");
-            Log("🧪 SIM MODE：本版本僅做 E1（HUB 重啟）事件模擬與恢復時間統計，不連線 HUB。");
+            Log("🧪 SIM MODE：本版本做 E3（HTTP 404 / 任務不存在）模擬，不連線 HUB。");
         }
 
         // ================== UI: Connect (SIM) ==================
@@ -84,9 +101,7 @@ namespace SmartCap.Bridge
                 string ip = SafeText(txtHubIp, "10.0.60.96");
                 Log($"[INFO][HUB] Connected successfully ({ip}) (SIM)");
                 UpdateHubStatus("✅ HUB Connected (SIM)");
-
-                Log("🔔 [SIM] Subscribe Response (virtual)");
-                Log("🔇 [SIM] 連線完成：所有 LED 與按鈕外觀已關閉，等待 Get Order。");
+                Log("🔇 [SIM] 連線完成：E3 不測 HUB 重啟，只測 Order API 404。");
             }
             catch (OperationCanceledException)
             {
@@ -98,41 +113,24 @@ namespace SmartCap.Bridge
         // ================== UI: Get Order (SIM) ==================
         private void btnGetOrder_Click(object? sender, EventArgs e)
         {
-            Log("🟦 [UI] Get Order (SIM)");
+            Log("🟦 [UI] Get Order (SIM / E3)");
 
             try
             {
-                var json = BuildEmbeddedOrdersJson().Trim();
-                if (!json.StartsWith("[")) json = "[" + json + "]";
+                // E3 shows: query a task that doesn't exist -> 404
+                var orderId = "WO-404";
 
-                if (_orderQueue == null || _orderQueue.Count == 0)
-                    _orderQueue = JArray.Parse(json);
+                string payloadJson = SimHttpGetOrder404PayloadJson(orderId);
+                Log($"[DEBUG][HTTP] GET /orders/{orderId} -> status=404 payload={TrimOneLine(payloadJson, 140)}");
 
-                if (_orderQueue.Count == 0)
-                {
-                    Log("📭 [SIM] 沒有更多工單了。");
-                    return;
-                }
+                // For E3, we treat 404 as "Not Found" immediately, no side effects.
+                ThrowE3NotFound(orderId, "orderId not found");
 
-                _currentOrder = (JObject)_orderQueue[0];
-                _orderQueue.RemoveAt(0);
-
-                _lines = (JArray)_currentOrder["lines"]!;
-                _lineIndex = -1;
-
-                Log($"[INFO][ORDER] Order {_currentOrder["orderId"]} loaded (SIM)");
-                Log($"✅ [SIM] 工單 {_currentOrder["orderId"]}，共 {_lines.Count} 個 line：");
-
-                for (int i = 0; i < _lines.Count; i++)
-                {
-                    var ln = (JObject)_lines[i];
-                    var part = ln.Value<string>("partNo");
-                    var qty = ln.Value<int?>("qty") ?? 0;
-                    var loc = ln.Value<string>("location");
-                    Log($"   [{i + 1}] part={part} qty={qty} loc={loc}");
-                }
-
-                Log("👉 [SIM] 按下『Start』開始：將執行 20 次 E1（HUB 重啟）測試並統計恢復時間，結束後跳出存檔視窗與 SUMMARY 視窗。");
+            }
+            catch (E3NotFoundException ex)
+            {
+                Log($"[HTTP][404] Not Found (SIM) orderId={ex.OrderId} reason={ex.Reason}");
+                Log("✅ [E3] 已拒絕執行（不啟動流程、不亮燈、不進 line）。");
             }
             catch (Exception ex)
             {
@@ -144,11 +142,6 @@ namespace SmartCap.Bridge
         private async void btnStart_Click(object? sender, EventArgs e)
         {
             if (_running) { Log("ℹ️ SIM 已在執行中"); return; }
-            if (_lines == null || _lines.Count == 0)
-            {
-                Log("⚠️ [SIM] 尚未載入工單（請先 Get Order）");
-                return;
-            }
 
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
@@ -158,37 +151,63 @@ namespace SmartCap.Bridge
 
             try
             {
-                ResetRecoveryMetrics();
+                ResetE3Metrics();
 
-                Log("🟩 [UI] Start (SIM)");
-                Log($"[INFO][TEST] Scenario=E1({E1_ERROR_KEY}) rounds=20");
+                Log("🟩 [UI] Start (SIM / E3)");
+                Log($"[INFO][TEST] Scenario=E3({E3_KEY}) events={EVENTS}");
 
-                for (int round = 1; round <= 20; round++)
+                for (int i = 1; i <= EVENTS; i++)
                 {
                     ct.ThrowIfCancellationRequested();
 
-                    Log($"[INFO][TEST] ---- Round {round}/20 ----");
+                    Log($"[INFO][TEST] ---- Round {i}/{EVENTS} ----");
 
-                    // Normal operations (so it looks real)
-                    await SimNormalFlowBeforeIssueAsync(ct);
+                    // Always trigger 404
+                    string orderId = $"WO-{i:000}-404";
+                    string payloadJson = SimHttpGetOrder404PayloadJson(orderId);
 
-                    // E1 issue + recovery timing
-                    await SimE1_HubRestartWithRecoveryAsync(ct, round);
+                    Log($"[DEBUG][HTTP] GET /orders/{orderId} -> payload={TrimOneLine(payloadJson, 140)}");
 
-                    // Continue normal after recovery (optional, for realism)
-                    await SimNormalFlowAfterRecoveryAsync(ct);
+                    // E3 handling time = detection + decision (no retry/fix)
+                    string id = StartTimer(E3_KEY);
+
+                    try
+                    {
+                        // Simulate request/handling jitter
+                        int jitter = _rng.Next(HANDLE_JITTER_MIN_MS, HANDLE_JITTER_MAX_MS + 1);
+                        await Task.Delay(jitter, ct);
+
+                        // E3: raise "not found" and reject
+                        ThrowE3NotFound(orderId, ExtractE3ReasonFromPayload(payloadJson));
+
+                        // Should not reach
+                        Log("[WARN][E3] Unexpected: not found not thrown");
+                        StopTimerFail(id, E3_KEY, orderId, "Unexpected pass");
+                    }
+                    catch (E3NotFoundException ex)
+                    {
+                        _notFoundCount++;
+                        Log($"[HTTP][404] Not Found (SIM) orderId={ex.OrderId} reason={ex.Reason}");
+                        Log("✅ [E3] Reject: no action performed (SIM)");
+
+                        StopTimerOk(id, E3_KEY, ex.OrderId, ex.Reason);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("❌ [E3] Unexpected exception: " + ex.Message);
+                        StopTimerFail(id, E3_KEY, orderId, "Exception: " + ex.Message);
+                    }
+
+                    await Task.Delay(100, ct);
                 }
 
-                // Summary for 4.3
-                string summaryText = RecoverySummaryAndReturnText();
+                string summaryText = SummaryAndReturnText();
 
-                // ✅ 結束後「自動跳出」存檔視窗（同原本按鈕存檔體驗）
-                SaveRecoveryCsvWithDialog(E1_ERROR_KEY);
+                SaveCsvWithDialog(E3_KEY);
 
-                // Popup (Title = error type, Content = SUMMARY)
                 MessageBox.Show(
                     summaryText,
-                    E1_TYPE,
+                    E3_TITLE,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning
                 );
@@ -196,13 +215,13 @@ namespace SmartCap.Bridge
             catch (OperationCanceledException)
             {
                 Log("⏹️ [SIM] 已停止（Cancel）");
-                string summaryText = RecoverySummaryAndReturnText();
+                string summaryText = SummaryAndReturnText();
 
-                SaveRecoveryCsvWithDialog(E1_ERROR_KEY);
+                SaveCsvWithDialog(E3_KEY);
 
                 MessageBox.Show(
                     summaryText,
-                    E1_TYPE,
+                    E3_TITLE,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information
                 );
@@ -210,13 +229,13 @@ namespace SmartCap.Bridge
             catch (Exception ex)
             {
                 Log("❌ [SIM] 例外：" + ex.Message);
-                string summaryText = RecoverySummaryAndReturnText();
+                string summaryText = SummaryAndReturnText();
 
-                SaveRecoveryCsvWithDialog(E1_ERROR_KEY);
+                SaveCsvWithDialog(E3_KEY);
 
                 MessageBox.Show(
                     summaryText + Environment.NewLine + Environment.NewLine + "Exception: " + ex.Message,
-                    E1_TYPE,
+                    E3_TITLE,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
                 );
@@ -227,157 +246,138 @@ namespace SmartCap.Bridge
             }
         }
 
-        // ================== SIM steps ==================
+        // ================== E3 core ==================
 
-        private async Task SimNormalFlowBeforeIssueAsync(CancellationToken ct)
+        private class E3NotFoundException : Exception
         {
-            _lineIndex = 0;
-
-            var line1 = (JObject)_lines![_lineIndex];
-            string btn1 = GetFirstButtonAddress(line1) ?? "1003";
-            Log($"[INFO][FLOW] Line 1 activated (Button {btn1})");
-            await Task.Delay(180, ct);
-            Log($"[INFO][FLOW] Line 1 completed");
-            await Task.Delay(120, ct);
-
-            _lineIndex = 1;
-            var line2 = (JObject)_lines[_lineIndex];
-            string btn2 = GetFirstButtonAddress(line2) ?? "1005";
-            Log($"[INFO][FLOW] Line 2 activated (Button {btn2})");
-            await Task.Delay(140, ct);
+            public string OrderId { get; }
+            public string Reason { get; }
+            public E3NotFoundException(string orderId, string reason) : base(reason)
+            {
+                OrderId = orderId;
+                Reason = reason;
+            }
         }
 
-        private async Task SimE1_HubRestartWithRecoveryAsync(CancellationToken ct, int round)
+        private static void ThrowE3NotFound(string orderId, string reason)
         {
-            // issue occurs "suddenly"
-            Log("[WARN][HUB] Connection lost (device reboot detected)");
-
-            string id = RecoveryStart(E1_ERROR_KEY);
-
-            // Realistic total reboot+restore target: ~4s to 10s with variation
-            int totalMs = NextRebootTotalMs(round);
-            int a1 = (int)(totalMs * 0.35); // reconnect1
-            int a2 = (int)(totalMs * 0.30); // reconnect2
-            int a3 = (int)(totalMs * 0.20); // reconnect3
-            int rs = totalMs - (a1 + a2 + a3); // restore state
-
-            Log("[ACTION][HUB] Reconnecting... attempt=1");
-            await Task.Delay(a1, ct);
-
-            Log("[ACTION][HUB] Reconnecting... attempt=2");
-            await Task.Delay(a2, ct);
-
-            Log("[ACTION][HUB] Reconnecting... attempt=3");
-            await Task.Delay(a3, ct);
-
-            Log("[ACTION][HUB] Restoring device state");
-            await Task.Delay(rs, ct);
-
-            // recovered
-            Log("[OK  ][HUB] Connection restored");
-            RecoveryDone(id, E1_ERROR_KEY, ok: true);
+            throw new E3NotFoundException(orderId, reason);
         }
 
-        private async Task SimNormalFlowAfterRecoveryAsync(CancellationToken ct)
+        private static string ExtractE3ReasonFromPayload(string payloadJson)
         {
-            await Task.Delay(120, ct);
-            Log("[INFO][FLOW] Resume picking process after recovery");
-            await Task.Delay(140, ct);
-            Log("[INFO][FLOW] Line 2 completed");
-            await Task.Delay(120, ct);
+            // Keep simple & safe: try read message field, else return generic.
+            try
+            {
+                var t = payloadJson.Trim();
+                if (t.StartsWith("{"))
+                {
+                    var obj = JObject.Parse(t);
+                    var msg = obj.Value<string>("message");
+                    if (!string.IsNullOrWhiteSpace(msg)) return msg!;
+                    var err = obj.Value<string>("error");
+                    if (!string.IsNullOrWhiteSpace(err)) return err!;
+                }
+            }
+            catch { }
+            return "task not found";
         }
 
-        // Total time generator (ms)
-        // Typical reboot+reconnect: 4~10 seconds, with occasional slower outliers.
-        private int NextRebootTotalMs(int round)
+        // ================== Metrics ==================
+
+        private void ResetE3Metrics()
         {
-            int baseMs = _rng.Next(4200, 8201);
+            _seq = 0;
+            _start.Clear();
 
-            if (round % 7 == 0)
-                baseMs = _rng.Next(8500, 11001);
+            _ok = 0;
+            _fail = 0;
 
-            baseMs += _rng.Next(-250, 251);
+            _timesMs.Clear();
+            _maxMs = 0;
+            _minMs = 0;
 
-            if (baseMs < 3500) baseMs = 3500;
-            if (baseMs > 12000) baseMs = 12000;
-
-            return baseMs;
+            _notFoundCount = 0;
+            _records.Clear();
         }
 
-        // ================== Recovery metrics helpers ==================
-
-        private void ResetRecoveryMetrics()
+        private string StartTimer(string type)
         {
-            _recSeq = 0;
-            _recStart.Clear();
-            _recOk = 0;
-            _recFail = 0;
-            _recTimesMs.Clear();
-            _recMaxMs = 0;
-            _recMinMs = 0;
-            _recRecords.Clear();
-        }
-
-        private string RecoveryStart(string type)
-        {
-            string id = $"E1-{++_recSeq:0000}";
+            string id = $"E3-{++_seq:0000}";
             var t0 = DateTime.Now;
-            _recStart[id] = t0;
-            Log($"[WARN][RECOVERY] START id={id} type={type} t0={t0:HH:mm:ss.fff}");
+            _start[id] = t0;
+            Log($"[WARN][E3] START id={id} type={type} t0={t0:HH:mm:ss.fff}");
             return id;
         }
 
-        private void RecoveryDone(string id, string type, bool ok, string? reason = null)
+        private void StopTimerOk(string id, string type, string orderId, string reason)
         {
             var t1 = DateTime.Now;
-            if (!_recStart.TryGetValue(id, out var t0)) t0 = t1;
+            if (!_start.TryGetValue(id, out var t0)) t0 = t1;
             long dt = (long)(t1 - t0).TotalMilliseconds;
 
-            if (ok)
+            _ok++;
+            _timesMs.Add(dt);
+
+            if (_minMs == 0 || dt < _minMs) _minMs = dt;
+            if (dt > _maxMs) _maxMs = dt;
+
+            _records.Add(new E3Record
             {
-                _recOk++;
-                _recTimesMs.Add(dt);
+                Index = _records.Count + 1,
+                Type = type,
+                Id = id,
+                OrderId = orderId,
+                Reason = reason,
+                T0 = t0,
+                T1 = t1,
+                DtMs = dt,
+                Result = "PASS"
+            });
 
-                if (_recMinMs == 0 || dt < _recMinMs) _recMinMs = dt;
-                if (dt > _recMaxMs) _recMaxMs = dt;
-
-                _recRecords.Add(new RecoveryRecord
-                {
-                    Index = _recRecords.Count + 1,
-                    Type = type,
-                    Id = id,
-                    T0 = t0,
-                    T1 = t1,
-                    DtMs = dt
-                });
-
-                Log($"[OK  ][RECOVERY] DONE  id={id} type={type} t1={t1:HH:mm:ss.fff} dt={dt}ms");
-            }
-            else
-            {
-                _recFail++;
-                Log($"[FAIL][RECOVERY] DONE  id={id} type={type} t1={t1:HH:mm:ss.fff} dt={dt}ms reason={reason}");
-            }
-
-            _recStart.Remove(id);
+            Log($"[OK  ][E3] DONE  id={id} type={type} t1={t1:HH:mm:ss.fff} dt={dt}ms orderId={orderId}");
+            _start.Remove(id);
         }
 
-        // ✅ 這就是「原本按鈕存檔」的行為：跳 SaveFileDialog 讓你選位置
-        private void SaveRecoveryCsvWithDialog(string errorType)
+        private void StopTimerFail(string id, string type, string orderId, string reason)
+        {
+            var t1 = DateTime.Now;
+            if (!_start.TryGetValue(id, out var t0)) t0 = t1;
+            long dt = (long)(t1 - t0).TotalMilliseconds;
+
+            _fail++;
+            _records.Add(new E3Record
+            {
+                Index = _records.Count + 1,
+                Type = type,
+                Id = id,
+                OrderId = orderId,
+                Reason = reason,
+                T0 = t0,
+                T1 = t1,
+                DtMs = dt,
+                Result = "FAIL"
+            });
+
+            Log($"[FAIL][E3] DONE  id={id} type={type} t1={t1:HH:mm:ss.fff} dt={dt}ms orderId={orderId} reason={reason}");
+            _start.Remove(id);
+        }
+
+        private void SaveCsvWithDialog(string errorType)
         {
             try
             {
-                if (_recRecords.Count == 0)
+                if (_records.Count == 0)
                 {
-                    Log("⚠️ 無 recovery 資料，略過 CSV 輸出");
+                    Log("⚠️ 無 E3 記錄資料，略過 CSV 輸出");
                     return;
                 }
 
                 using var sfd = new SaveFileDialog
                 {
-                    Title = "Export Recovery CSV",
+                    Title = "Export E3 CSV",
                     Filter = "CSV (*.csv)|*.csv",
-                    FileName = $"recovery_{errorType}_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+                    FileName = $"e3_{errorType}_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
                 };
 
                 if (sfd.ShowDialog() != DialogResult.OK)
@@ -386,15 +386,16 @@ namespace SmartCap.Bridge
                     return;
                 }
 
-                var lines = new List<string> { "index,type,id,t0,t1,dt_ms" };
+                var lines = new List<string> { "index,type,id,result,orderId,reason,t0,t1,dt_ms" };
 
-                foreach (var r in _recRecords)
+                foreach (var r in _records)
                 {
-                    lines.Add($"{r.Index},{r.Type},{r.Id},{r.T0:HH:mm:ss.fff},{r.T1:HH:mm:ss.fff},{r.DtMs}");
+                    var safeReason = (r.Reason ?? "").Replace(",", " ");
+                    lines.Add($"{r.Index},{r.Type},{r.Id},{r.Result},{r.OrderId},{safeReason},{r.T0:HH:mm:ss.fff},{r.T1:HH:mm:ss.fff},{r.DtMs}");
                 }
 
                 File.WriteAllLines(sfd.FileName, lines, Encoding.UTF8);
-                Log($"📄 Recovery CSV 已儲存：{sfd.FileName}");
+                Log($"📄 E3 CSV 已儲存：{sfd.FileName}");
             }
             catch (Exception ex)
             {
@@ -402,49 +403,62 @@ namespace SmartCap.Bridge
             }
         }
 
-        // Writes summary to Log AND returns the same summary string for MessageBox content
-        private string RecoverySummaryAndReturnText()
+        private string SummaryAndReturnText()
         {
-            int total = _recOk + _recFail;
-            double rate = total > 0 ? (double)_recOk / total * 100.0 : 0.0;
+            int total = _ok + _fail;
+            double successRate = total > 0 ? (double)_ok / total * 100.0 : 0.0;
 
             double avgMs = 0;
-            if (_recTimesMs.Count > 0)
+            if (_timesMs.Count > 0)
             {
                 long sum = 0;
-                for (int i = 0; i < _recTimesMs.Count; i++) sum += _recTimesMs[i];
-                avgMs = (double)sum / _recTimesMs.Count;
+                for (int i = 0; i < _timesMs.Count; i++) sum += _timesMs[i];
+                avgMs = (double)sum / _timesMs.Count;
             }
 
-            string pass = (_recMaxMs <= 300_000) ? "PASS" : "FAIL"; // 5 minutes = 300s
+            double avgS = avgMs / 1000.0;
+            double minS = _minMs > 0 ? _minMs / 1000.0 : 0.0;
+            double maxS = _maxMs > 0 ? _maxMs / 1000.0 : 0.0;
 
             Log("[SUMMARY]");
-            Log(E1_ERROR_KEY);
+            Log(E3_KEY);
             Log($"total={total}");
-            Log($"success={_recOk}");
-            Log($"fail={_recFail}");
-            Log($"recovery_rate={rate:0.00}%");
-            Log($"avg_recovery_time={(avgMs / 1000.0):0.0}s");
-            Log($"min_recovery_time={(_recMinMs / 1000.0):0.0}s");
-            Log($"max_recovery_time={(_recMaxMs / 1000.0):0.0}s");
-       
+            Log($"success={_ok}");
+            Log($"fail={_fail}");
+            Log($"success_rate={successRate:0.00}%");
+            Log($"avg_fix_time={avgS:0.0}s");
+            Log($"min_fix_time={minS:0.0}s");
+            Log($"max_fix_time={maxS:0.0}s");
 
             var sb = new StringBuilder();
             sb.AppendLine("[SUMMARY]");
-            sb.AppendLine(E1_ERROR_KEY);
+            sb.AppendLine(E3_KEY);
+            sb.AppendLine();
             sb.AppendLine($"total={total}");
-            sb.AppendLine($"success={_recOk}");
-            sb.AppendLine($"fail={_recFail}");
-            sb.AppendLine($"recovery_rate={rate:0.00}%");
-            sb.AppendLine($"avg_recovery_time={(avgMs / 1000.0):0.0}s");
-            sb.AppendLine($"min_recovery_time={(_recMinMs / 1000.0):0.0}s");
-            sb.AppendLine($"max_recovery_time={(_recMaxMs / 1000.0):0.0}s");
-
+            sb.AppendLine($"success={_ok}");
+            sb.AppendLine($"fail={_fail}");
+            sb.AppendLine($"success_rate={successRate:0.00}%");
+            sb.AppendLine();
+            sb.AppendLine($"avg_fix_time={avgS:0.0}s");
+            sb.AppendLine($"min_fix_time={minS:0.0}s");
+            sb.AppendLine($"max_fix_time={maxS:0.0}s");
 
             return sb.ToString();
         }
 
-        // ================== Small utilities ==================
+        // ================== SIM: 404 payload generator ==================
+        private static string SimHttpGetOrder404PayloadJson(string orderId)
+        {
+            // Typical ERP error response (SIM)
+            return $@"
+{{
+  ""status"": 404,
+  ""error"": ""Not Found"",
+  ""message"": ""orderId '{orderId}' not found""
+}}";
+        }
+
+        // ================== Small utilities (same style as E2) ==================
 
         private static string SafeText(TextBox? tb, string fallback)
         {
@@ -456,12 +470,12 @@ namespace SmartCap.Bridge
             catch { return fallback; }
         }
 
-        private static string? GetFirstButtonAddress(JObject line)
+        private static string TrimOneLine(string s, int maxLen)
         {
-            var btns = line["buttons"] as JArray;
-            if (btns == null || btns.Count == 0) return null;
-            var b = btns[0] as JObject;
-            return b?.Value<string>("address");
+            if (s == null) return "";
+            var one = s.Replace("\r", " ").Replace("\n", " ").Trim();
+            if (one.Length <= maxLen) return one;
+            return one.Substring(0, maxLen) + "...";
         }
 
         private void UpdateHubStatus(string text)
@@ -484,23 +498,6 @@ namespace SmartCap.Bridge
                 lstLog.BeginInvoke((Action)(() => lstLog.TopIndex = Math.Max(0, lstLog.Items.Count - 1)));
             else
                 lstLog.TopIndex = Math.Max(0, lstLog.Items.Count - 1);
-        }
-
-        // ================== Embedded orders (minimal) ==================
-        private string BuildEmbeddedOrdersJson()
-        {
-            return @"
-[
-  {
-    ""orderId"": ""WO-001"",
-    ""hubIp"": ""10.0.60.96"",
-    ""lines"": [
-      { ""partNo"": ""CY-3891A-A01"", ""qty"": 31, ""location"": ""B4G14"", ""buttons"": [ { ""address"": ""1003"", ""color"": ""COLGREEN"", ""text"": ""@31@"" } ], ""ledSteps"": [] },
-      { ""partNo"": ""CY-37G1Y-A01"", ""qty"": 22, ""location"": ""B4G14"", ""buttons"": [ { ""address"": ""1005"", ""color"": ""COLGREEN"", ""text"": ""@22@"" } ], ""ledSteps"": [] }
-    ]
-  }
-]
-";
         }
     }
 }
