@@ -32,14 +32,35 @@
             this.btnExportCsv = new System.Windows.Forms.Button();
             this.lblKpi = new System.Windows.Forms.Label();
             this.lstLog = new System.Windows.Forms.ListBox();
+            this.lblScenario = new System.Windows.Forms.Label();
+            this.lblCriteria = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.numCount)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numIntervalMs)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTimeoutMs)).BeginInit();
             this.SuspendLayout();
             // 
+            // lblScenario
+            // 
+            this.lblScenario.AutoSize = true;
+            this.lblScenario.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblScenario.Location = new System.Drawing.Point(16, 9);
+            this.lblScenario.Name = "lblScenario";
+            this.lblScenario.Size = new System.Drawing.Size(77, 19);
+            this.lblScenario.TabIndex = 100;
+            this.lblScenario.Text = "Scenario";
+            // 
+            // lblCriteria
+            // 
+            this.lblCriteria.AutoSize = true;
+            this.lblCriteria.Location = new System.Drawing.Point(16, 32);
+            this.lblCriteria.Name = "lblCriteria";
+            this.lblCriteria.Size = new System.Drawing.Size(47, 15);
+            this.lblCriteria.TabIndex = 101;
+            this.lblCriteria.Text = "Criteria";
+            // 
             // txtHubIp
             // 
-            this.txtHubIp.Location = new System.Drawing.Point(92, 16);
+            this.txtHubIp.Location = new System.Drawing.Point(92, 58);
             this.txtHubIp.Name = "txtHubIp";
             this.txtHubIp.Size = new System.Drawing.Size(200, 23);
             this.txtHubIp.TabIndex = 0;
@@ -47,7 +68,7 @@
             // 
             // txtOrderId
             // 
-            this.txtOrderId.Location = new System.Drawing.Point(92, 48);
+            this.txtOrderId.Location = new System.Drawing.Point(92, 90);
             this.txtOrderId.Name = "txtOrderId";
             this.txtOrderId.Size = new System.Drawing.Size(200, 23);
             this.txtOrderId.TabIndex = 1;
@@ -55,7 +76,7 @@
             // 
             // numCount
             // 
-            this.numCount.Location = new System.Drawing.Point(388, 16);
+            this.numCount.Location = new System.Drawing.Point(388, 58);
             this.numCount.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             this.numCount.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             this.numCount.Name = "numCount";
@@ -65,7 +86,7 @@
             // 
             // numIntervalMs
             // 
-            this.numIntervalMs.Location = new System.Drawing.Point(388, 48);
+            this.numIntervalMs.Location = new System.Drawing.Point(388, 90);
             this.numIntervalMs.Maximum = new decimal(new int[] { 600000, 0, 0, 0 });
             this.numIntervalMs.Name = "numIntervalMs";
             this.numIntervalMs.Size = new System.Drawing.Size(90, 23);
@@ -74,7 +95,7 @@
             // 
             // numTimeoutMs
             // 
-            this.numTimeoutMs.Location = new System.Drawing.Point(388, 80);
+            this.numTimeoutMs.Location = new System.Drawing.Point(388, 122);
             this.numTimeoutMs.Maximum = new decimal(new int[] { 600000, 0, 0, 0 });
             this.numTimeoutMs.Minimum = new decimal(new int[] { 100, 0, 0, 0 });
             this.numTimeoutMs.Name = "numTimeoutMs";
@@ -85,7 +106,7 @@
             // lblHubIp
             // 
             this.lblHubIp.AutoSize = true;
-            this.lblHubIp.Location = new System.Drawing.Point(16, 19);
+            this.lblHubIp.Location = new System.Drawing.Point(16, 61);
             this.lblHubIp.Name = "lblHubIp";
             this.lblHubIp.Size = new System.Drawing.Size(45, 15);
             this.lblHubIp.TabIndex = 10;
@@ -94,7 +115,7 @@
             // lblOrderId
             // 
             this.lblOrderId.AutoSize = true;
-            this.lblOrderId.Location = new System.Drawing.Point(16, 51);
+            this.lblOrderId.Location = new System.Drawing.Point(16, 93);
             this.lblOrderId.Name = "lblOrderId";
             this.lblOrderId.Size = new System.Drawing.Size(50, 15);
             this.lblOrderId.TabIndex = 11;
@@ -103,7 +124,7 @@
             // lblCount
             // 
             this.lblCount.AutoSize = true;
-            this.lblCount.Location = new System.Drawing.Point(312, 19);
+            this.lblCount.Location = new System.Drawing.Point(312, 61);
             this.lblCount.Name = "lblCount";
             this.lblCount.Size = new System.Drawing.Size(41, 15);
             this.lblCount.TabIndex = 12;
@@ -112,7 +133,7 @@
             // lblInterval
             // 
             this.lblInterval.AutoSize = true;
-            this.lblInterval.Location = new System.Drawing.Point(312, 51);
+            this.lblInterval.Location = new System.Drawing.Point(312, 93);
             this.lblInterval.Name = "lblInterval";
             this.lblInterval.Size = new System.Drawing.Size(67, 15);
             this.lblInterval.TabIndex = 13;
@@ -121,7 +142,7 @@
             // lblTimeout
             // 
             this.lblTimeout.AutoSize = true;
-            this.lblTimeout.Location = new System.Drawing.Point(312, 83);
+            this.lblTimeout.Location = new System.Drawing.Point(312, 125);
             this.lblTimeout.Name = "lblTimeout";
             this.lblTimeout.Size = new System.Drawing.Size(75, 15);
             this.lblTimeout.TabIndex = 14;
@@ -129,7 +150,7 @@
             // 
             // btnRun
             // 
-            this.btnRun.Location = new System.Drawing.Point(500, 16);
+            this.btnRun.Location = new System.Drawing.Point(500, 58);
             this.btnRun.Name = "btnRun";
             this.btnRun.Size = new System.Drawing.Size(120, 27);
             this.btnRun.TabIndex = 5;
@@ -138,7 +159,7 @@
             // 
             // btnStop
             // 
-            this.btnStop.Location = new System.Drawing.Point(500, 48);
+            this.btnStop.Location = new System.Drawing.Point(500, 90);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(120, 27);
             this.btnStop.TabIndex = 6;
@@ -147,7 +168,7 @@
             // 
             // btnExportCsv
             // 
-            this.btnExportCsv.Location = new System.Drawing.Point(500, 80);
+            this.btnExportCsv.Location = new System.Drawing.Point(500, 122);
             this.btnExportCsv.Name = "btnExportCsv";
             this.btnExportCsv.Size = new System.Drawing.Size(120, 27);
             this.btnExportCsv.TabIndex = 7;
@@ -158,7 +179,7 @@
             // 
             this.lblKpi.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblKpi.Location = new System.Drawing.Point(16, 118);
+            this.lblKpi.Location = new System.Drawing.Point(16, 160);
             this.lblKpi.Name = "lblKpi";
             this.lblKpi.Size = new System.Drawing.Size(760, 18);
             this.lblKpi.TabIndex = 15;
@@ -171,9 +192,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lstLog.FormattingEnabled = true;
             this.lstLog.ItemHeight = 15;
-            this.lstLog.Location = new System.Drawing.Point(16, 146);
+            this.lstLog.Location = new System.Drawing.Point(16, 188);
             this.lstLog.Name = "lstLog";
-            this.lstLog.Size = new System.Drawing.Size(760, 304);
+            this.lstLog.Size = new System.Drawing.Size(760, 259);
             this.lstLog.TabIndex = 8;
             // 
             // Form1
@@ -181,6 +202,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(792, 468);
+            this.Controls.Add(this.lblCriteria);
+            this.Controls.Add(this.lblScenario);
             this.Controls.Add(this.lstLog);
             this.Controls.Add(this.lblKpi);
             this.Controls.Add(this.btnExportCsv);
@@ -197,7 +220,7 @@
             this.Controls.Add(this.txtOrderId);
             this.Controls.Add(this.txtHubIp);
             this.Name = "Form1";
-            this.Text = "Test";
+            this.Text = "LEDhub MQTT";
             ((System.ComponentModel.ISupportInitialize)(this.numCount)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numIntervalMs)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numTimeoutMs)).EndInit();
@@ -222,5 +245,8 @@
         private System.Windows.Forms.Button btnExportCsv;
         private System.Windows.Forms.Label lblKpi;
         private System.Windows.Forms.ListBox lstLog;
+
+        private System.Windows.Forms.Label lblScenario;
+        private System.Windows.Forms.Label lblCriteria;
     }
 }

@@ -17,14 +17,31 @@ namespace SmartCap.Bridge
         private CancellationTokenSource? _cts;
         private bool _running = false;
 
+        // ===== KPI Criteria (for screenshot / review) =====
+        private const int RequiredSamples = 200;
+        private const double RequiredSuccessRate = 99.0; // %
+        private const long RequiredMaxLatencyMs = 500;    // <= 0.5 sec
+
+        // ✅ 每筆固定 Delay（你要求）
+        private const int PerRequestDelayMs = 350;
+
         // 統計
         private int _sent = 0, _ok = 0, _fail = 0;
         private long _okLatencySumMs = 0, _maxLatencyMs = 0;
         private readonly List<long> _latencies = new List<long>();
 
+        // Scenario text (2.1.1)
+        private const string ScenarioTitle =
+            "";
+
         public Form1()
         {
             InitializeComponent();
+
+            // UI header for screenshot (Designer 要有 lblScenario / lblCriteria)
+            lblScenario.Text = ScenarioTitle;
+            lblCriteria.Text =
+                $"";
 
             btnRun.Click += btnRun_Click;
             btnStop.Click += btnStop_Click;
@@ -58,6 +75,11 @@ namespace SmartCap.Bridge
                 return;
             }
 
+            if (count < RequiredSamples)
+            {
+                Log($"⚠️ 測試筆數建議至少 {RequiredSamples}（目前={count}）以符合審查條件");
+            }
+
             ResetStats();
 
             _running = true;
@@ -67,42 +89,34 @@ namespace SmartCap.Bridge
 
             _cts = new CancellationTokenSource();
 
-            Log($"🧪 START | hub={hubIp} orderId={orderId} count={count} interval={intervalMs}ms timeout={timeoutMs}ms");
-           // Log("✅ 成功定義：HTTP 2xx");
-            Log("⏱️ 反應時間：request→response (Stopwatch)");
+            Log($"🧪 START | {ScenarioTitle}");
+            Log($"hub={hubIp} orderId={orderId} count={count} interval={intervalMs}ms timeout={timeoutMs}ms");
+            Log("✅ 成功定義：HTTP 2xx");
 
             try
             {
-                const int WorstCaseMs = 400;
-
                 for (int i = 1; i <= count; i++)
                 {
                     _cts.Token.ThrowIfCancellationRequested();
 
+                    string cmdId = $"CMD-{DateTime.Now:HHmmss}-{i:D3}";
+
                     _sent++;
 
-                    var (ok, ms, httpCode) =
-                     await PostOrderTimedAsync(hubIp, orderId, timeoutMs, _cts.Token);
+                    // CONTROL log
+                    Log($"[CTRL] cmd={cmdId} action=SendOrder orderId={orderId} hub={hubIp}");
 
-                    // 加 300ms DELAY
-                    int extraDelay = (i >= 0) ? 350 : 0;
+                    var (ok, ms, httpCode) = await PostOrderTimedAsync(hubIp, orderId, timeoutMs, _cts.Token);
 
-                    // 🔴 調整後的 latency（唯一版本）
-                    long latency = ms + extraDelay;
-
-                    // 行為上真的補 delay
-                    if (extraDelay > 0)
-                    {
-                        await Task.Delay(extraDelay, _cts.Token);
-                    }
+                    // ✅ 單一反應時間：HTTP + 固定 delay
+                    long latency = ms + PerRequestDelayMs;
 
                     if (ok)
                     {
                         _ok++;
-                        _okLatencySumMs += latency;     // ✅ AVG 用這個
-                        _latencies.Add(latency);        // ✅ CSV 用這個
-                        if (latency > _maxLatencyMs)    // ✅ MAX 用這個
-                            _maxLatencyMs = latency;
+                        _okLatencySumMs += latency;
+                        _latencies.Add(latency);
+                        if (latency > _maxLatencyMs) _maxLatencyMs = latency;
                     }
                     else
                     {
@@ -111,27 +125,44 @@ namespace SmartCap.Bridge
 
                     UpdateKpi();
 
-                    // ✅ LOG 只顯示一個 latency（已調整）
-                    Log($"[TEST] i={i}/{count} http={(httpCode == 0 ? "ERR" : httpCode.ToString())} " +
-                        $"ok={(ok ? "Y" : "N")} latency={latency}ms");
+                    // VERIFY log
+                    string verifyResult = ok ? "PASS" : "FAIL";
+                    Log($"[VERIFY] cmd={cmdId} rule=HTTP_2XX result={verifyResult} " +
+                        $"code={(httpCode == 0 ? "ERR" : httpCode.ToString())} Response Time={latency}ms");
 
-                    // 原本 interval（如需保留）
+                    if (!ok)
+                    {
+                        Log($"[ERROR] cmd={cmdId} verification failed (timeout/reject/non-2xx)");
+                    }
+
+                    
+                    // ✅ 每筆固定 Delay 350ms（你要求）
+                    await Task.Delay(PerRequestDelayMs, _cts.Token);
+
+                    // 原本 interval（保留）
                     if (intervalMs > 0)
                         await Task.Delay(intervalMs, _cts.Token);
-
                 }
 
-                Log("✅ DONE | " + BuildKpiText());
+                string kpiText = BuildKpiText();
+                Log("✅ DONE | " + kpiText);
                 btnExportCsv.Enabled = _latencies.Count > 0;
+
+                ShowSummaryPopup();
             }
             catch (OperationCanceledException)
             {
                 Log("⏹️ 已停止（Stop）");
                 btnExportCsv.Enabled = _latencies.Count > 0;
+
+                ShowSummaryPopup();
             }
             catch (Exception ex)
             {
                 Log("❌ 例外：" + ex.Message);
+
+                // 也給一個摘要（方便截圖）
+                ShowSummaryPopup();
             }
             finally
             {
@@ -163,12 +194,11 @@ namespace SmartCap.Bridge
                 {
                     Title = "Export Latency CSV",
                     Filter = "CSV (*.csv)|*.csv",
-                    FileName = $"c3_stress_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+                    FileName = $"c3_stress_2_1_1_mqtt_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
                 };
 
                 if (sfd.ShowDialog() != DialogResult.OK) return;
 
-                // CSV: index, latency_ms
                 File.WriteAllLines(sfd.FileName, _latencies.Select((ms, idx) => $"{idx + 1},{ms}"), Encoding.UTF8);
                 Log($"📄 CSV 已輸出：{sfd.FileName}");
             }
@@ -192,9 +222,22 @@ namespace SmartCap.Bridge
         {
             double rate = _sent > 0 ? (double)_ok / _sent * 100.0 : 0;
             double avg = _ok > 0 ? (double)_okLatencySumMs / _ok : 0;
-            //string pass = (_maxLatencyMs <= 500) ? "PASS" : "FAIL";
-            return $"Total={_sent} OK={_ok} Fail={_fail} Rate={rate:0.00}% Avg={avg:0.0}ms Max={_maxLatencyMs}ms ";
+
+            // 未滿 200 筆時：RUNNING（不顯示 FAIL）
+            if (_sent < RequiredSamples)
+            {
+                return $"[RUNNING] Total={_sent}/{RequiredSamples} OK={_ok} Fail={_fail} " +
+                       $"Rate={rate:0.00}% Avg={avg:0.0}ms Max={_maxLatencyMs}ms";
+            }
+
+            bool passRate = rate >= RequiredSuccessRate;
+            bool passLatency = _maxLatencyMs <= RequiredMaxLatencyMs;
+            string pass = (passRate && passLatency) ? "PASS" : "FAIL";
+
+            return $"[{pass}] Total={_sent} OK={_ok} Fail={_fail} " +
+                   $"Rate={rate:0.00}% Avg={avg:0.0}ms Max={_maxLatencyMs}ms";
         }
+
 
         private void UpdateKpi()
         {
@@ -209,15 +252,64 @@ namespace SmartCap.Bridge
             else
                 lstLog.Items.Add(line);
 
-            // 自動捲到底
             if (lstLog.InvokeRequired)
                 lstLog.BeginInvoke((Action)(() => lstLog.TopIndex = Math.Max(0, lstLog.Items.Count - 1)));
             else
                 lstLog.TopIndex = Math.Max(0, lstLog.Items.Count - 1);
         }
 
+        private void ShowSummaryPopup()
+        {
+            // UI thread safe
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke((Action)(ShowSummaryPopup));
+                return;
+            }
+
+            string summary = BuildSummaryText();
+            bool isPass = IsFinalPass();
+
+            MessageBox.Show(
+                summary,
+                "Test",
+                MessageBoxButtons.OK,
+                isPass ? MessageBoxIcon.Information : MessageBoxIcon.Error
+            );
+        }
+
+        private bool IsFinalPass()
+        {
+            double rate = _sent > 0 ? (double)_ok / _sent * 100.0 : 0;
+
+            bool passSamples = _sent >= RequiredSamples;
+            bool passRate = rate >= RequiredSuccessRate;
+            bool passLatency = _maxLatencyMs <= RequiredMaxLatencyMs;
+
+            return passSamples && passRate && passLatency;
+        }
+
+        private string BuildSummaryText()
+        {
+            double rate = _sent > 0 ? (double)_ok / _sent * 100.0 : 0;
+            double avg = _ok > 0 ? (double)_okLatencySumMs / _ok : 0;
+
+            bool pass = IsFinalPass();
+
+            var sb = new StringBuilder();
+            sb.AppendLine(ScenarioTitle);
+            sb.AppendLine(new string('-', 56));
+            sb.AppendLine($"Test Count      : {_sent} / {RequiredSamples}");
+            sb.AppendLine($"Success / Fail  : {_ok} / {_fail}");
+            sb.AppendLine($"Success Rate    : {rate:0.00}% ");
+            sb.AppendLine($"Avg Response Time     : {avg:0.0} ms");
+            sb.AppendLine($"Max Response Time     : {_maxLatencyMs} ms");
+            sb.AppendLine(new string('-', 56));
+            return sb.ToString();
+        }
+
         private async Task<(bool ok, long ms, int httpCode)> PostOrderTimedAsync(
-    string hubIp, string orderId, int timeoutMs, CancellationToken ct)
+            string hubIp, string orderId, int timeoutMs, CancellationToken ct)
         {
             var sw = Stopwatch.StartNew();
             try
@@ -228,7 +320,7 @@ namespace SmartCap.Bridge
                     AllowAutoRedirect = false,
                     AutomaticDecompression = System.Net.DecompressionMethods.None,
 
-                    // 🔴 關鍵：禁止連線池
+                    // 禁止連線池（維持壓力測試一致性）
                     PooledConnectionLifetime = TimeSpan.Zero,
                     PooledConnectionIdleTimeout = TimeSpan.Zero,
                     MaxConnectionsPerServer = 1
@@ -244,7 +336,7 @@ namespace SmartCap.Bridge
                 string json = new JObject { ["orderId"] = orderId }.ToString();
 
                 var req = new HttpRequestMessage(HttpMethod.Post, url);
-                req.Headers.ConnectionClose = true;   // 🔴 再補一層
+                req.Headers.ConnectionClose = true;
                 req.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 using var resp = await client.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, reqCts.Token);
@@ -260,6 +352,5 @@ namespace SmartCap.Bridge
                 return (false, sw.ElapsedMilliseconds, 0);
             }
         }
-
     }
 }
