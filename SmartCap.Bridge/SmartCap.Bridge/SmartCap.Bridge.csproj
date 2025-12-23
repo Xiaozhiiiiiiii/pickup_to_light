@@ -9,10 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="C:\Users\ASTARC\Desktop\GOODWAY\ERR1\Form1.cs" Link="Form1.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="MQTTnet" Version="4.3.2.930" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="smartCAP_SDK" Version="3.0.3" />
